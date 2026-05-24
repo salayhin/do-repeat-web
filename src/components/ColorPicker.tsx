@@ -3,8 +3,16 @@ import { HexColorPicker } from 'react-colorful'
 import { useState, useEffect } from 'react'
 
 const PRESET_COLORS = [
-  '#1D9E75', '#D85A30', '#3B6D11', '#854F0B',
-  '#993556', '#185FA5', '#7B2D8B', '#C17D11',
+  // Greens & teals
+  '#1D9E75', '#0D7A5E', '#16A085', '#27AE60', '#3B6D11',
+  // Reds & oranges
+  '#D85A30', '#E74C3C', '#C0392B', '#E67E22', '#D35400',
+  // Blues & purples
+  '#185FA5', '#2980B9', '#8E44AD', '#7B2D8B', '#6C3483',
+  // Browns & warm
+  '#854F0B', '#C17D11', '#A04000', '#784212', '#5D4037',
+  // Pinks & misc
+  '#993556', '#CB4335', '#EC407A', '#AD1457', '#546E7A',
 ]
 
 interface ColorPickerProps {
@@ -33,7 +41,7 @@ export default function ColorPicker({ selectedColor, onColorSelect }: ColorPicke
   return (
     <div className="mb-4">
       <label className="block text-sm font-semibold text-gray-900 mb-2">Color</label>
-      <HexColorPicker color={selectedColor} onChange={handleWheelChange} style={{ width: '100%', height: 160 }} />
+      <HexColorPicker color={selectedColor} onChange={handleWheelChange} style={{ width: '100%', height: 100 }} />
       <input
         type="text"
         value={hexInput}

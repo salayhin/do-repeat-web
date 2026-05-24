@@ -26,18 +26,12 @@ const TIMEZONES = [
 
 export default function SettingsPage() {
   const { setTimezone: setStoreTimezone, setSelectedDate } = useUIStore()
-  const [isDark, setIsDark] = useState(false)
   const [timezone, setTimezone] = useState('UTC')
   const [reminderTime, setReminderTime] = useState('08:00')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('theme')
-    if (saved === 'dark') {
-      setIsDark(true)
-      document.documentElement.classList.add('dark')
-    }
     fetch('/api/settings')
       .then((r) => r.json())
       .then((d) => {
@@ -46,18 +40,6 @@ export default function SettingsPage() {
       })
       .catch(() => {})
   }, [])
-
-  const toggleTheme = () => {
-    const next = !isDark
-    setIsDark(next)
-    if (next) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
-    }
-  }
 
   const saveSettings = async (patch: Record<string, string>) => {
     setSaving(true)
@@ -165,32 +147,6 @@ export default function SettingsPage() {
                 ))}
               </select>
             </div>
-          </div>
-        </div>
-
-        {/* Appearance */}
-        <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Appearance
-          </h2>
-          <div className="flex items-center justify-between p-3 rounded-lg border border-[#E5E5E5]">
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Dark Mode</p>
-              <p className="text-xs text-gray-500">Toggle light/dark theme</p>
-            </div>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none ${
-                isDark ? 'bg-[#185FA5]' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  isDark ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
           </div>
         </div>
 
