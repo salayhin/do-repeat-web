@@ -1,6 +1,8 @@
 'use client'
 import { UserButton, SignOutButton } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
+import { useUIStore } from '@/src/stores/uiStore'
+import { getLocalDate } from '@/src/lib/dateUtils'
 
 const TIMEZONES = [
   { label: 'UTC', value: 'UTC' },
@@ -23,6 +25,7 @@ const TIMEZONES = [
 ]
 
 export default function SettingsPage() {
+  const { setTimezone: setStoreTimezone, setSelectedDate } = useUIStore()
   const [isDark, setIsDark] = useState(false)
   const [timezone, setTimezone] = useState('UTC')
   const [reminderTime, setReminderTime] = useState('08:00')
@@ -155,7 +158,13 @@ export default function SettingsPage() {
               </label>
               <select
                 value={timezone}
-                onChange={(e) => { setTimezone(e.target.value); saveSettings({ timezone: e.target.value }) }}
+                onChange={(e) => {
+                  const tz = e.target.value
+                  setTimezone(tz)
+                  setStoreTimezone(tz)
+                  setSelectedDate(getLocalDate(tz))
+                  saveSettings({ timezone: tz })
+                }}
                 disabled={saving}
                 className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#185FA5] bg-white disabled:opacity-60"
               >

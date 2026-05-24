@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useHabitsStore } from '@/src/stores/habitsStore'
+import { useUIStore } from '@/src/stores/uiStore'
+import { getLocalDate } from '@/src/lib/dateUtils'
 import ColorPicker from '@/src/components/ColorPicker'
 import IconPicker from '@/src/components/IconPicker'
 import SchedulePicker from '@/src/components/SchedulePicker'
@@ -12,6 +14,7 @@ type FormStep = 'basic' | 'type' | 'schedule' | 'reminder'
 export default function CreateHabitPage() {
   const router = useRouter()
   const { refreshHabits } = useHabitsStore()
+  const { timezone } = useUIStore()
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<FormStep>('basic')
 
@@ -58,7 +61,7 @@ export default function CreateHabitPage() {
   const handleCreate = async () => {
     setIsLoading(true)
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const today = getLocalDate(timezone)
       const res = await fetch('/api/habits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

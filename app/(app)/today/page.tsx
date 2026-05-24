@@ -2,9 +2,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useHabitsStore } from '@/src/stores/habitsStore'
+import { useUIStore } from '@/src/stores/uiStore'
 import CheckInCard from '@/src/components/CheckInCard'
 import QuantityModal from '@/src/components/QuantityModal'
 import * as streakLib from '@/src/lib/streaks'
+import { getLocalDate } from '@/src/lib/dateUtils'
 
 interface HabitDayData {
   habit: any
@@ -21,14 +23,15 @@ interface HabitDayData {
 
 export default function TodayPage() {
   const { habits } = useHabitsStore()
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const { timezone } = useUIStore()
+  const [selectedDate, setSelectedDate] = useState(() => getLocalDate(timezone))
   const [isLoading, setIsLoading] = useState(false)
   const [habitData, setHabitData] = useState<HabitDayData[]>([])
   const [quantityModalVisible, setQuantityModalVisible] = useState(false)
   const [selectedHabitData, setSelectedHabitData] = useState<HabitDayData | null>(null)
   const [search, setSearch] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getLocalDate(timezone)
   const isToday = selectedDate === today
   const displayDate = new Date(selectedDate + 'T00:00:00')
 
@@ -100,7 +103,7 @@ export default function TodayPage() {
   }, [habitData, search])
 
   const handlePreviousDay = () => {
-    const d = new Date(selectedDate + 'T00:00:00')
+    const d = new Date(selectedDate + 'T12:00:00')
     d.setDate(d.getDate() - 1)
     setSelectedDate(d.toISOString().split('T')[0])
   }
