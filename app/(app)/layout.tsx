@@ -9,11 +9,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col min-h-screen bg-white">
       <HabitsInitializer />
       {/* Mobile top header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-[#E5E5E5] flex items-center px-4 h-12">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-[#E5E5E5] flex items-center justify-between px-4 h-12">
         <Link href="/check-in" className="flex items-center gap-2">
           <img src="/do-repeat-logo.svg" alt="Do Repeat" className="w-6 h-6" />
           <span className="text-base font-bold text-gray-900">do repeat</span>
         </Link>
+        <MobileUserMenu />
       </header>
 
       <main className="flex-1 pb-16 pt-12 md:pt-0 md:pb-0 md:pl-56">{children}</main>
@@ -37,7 +38,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <MobileTab href="/check-in" label="Check In" icon="✓" />
         <MobileTab href="/habits" label="My Habits" icon="📋" />
         <MobileTab href="/reports" label="Reports" icon="📊" />
-        <MobileTab href="/settings" label="Settings" icon="⚙️" />
       </nav>
     </div>
   )
@@ -64,6 +64,48 @@ function MobileTab({ href, label, icon }: { href: string; label: string; icon: s
       <span className="text-lg">{icon}</span>
       <span className="text-xs font-medium">{label}</span>
     </Link>
+  )
+}
+
+function MobileUserMenu() {
+  const { user } = useUser()
+  const [open, setOpen] = useState(false)
+  const name = user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || 'Account'
+  const initials = name.slice(0, 2).toUpperCase()
+  const avatarUrl = user?.imageUrl
+
+  return (
+    <div className="relative">
+      <button type="button" onClick={() => setOpen(!open)} className="focus:outline-none">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-[#185FA5] flex items-center justify-center text-white text-xs font-bold">
+            {initials}
+          </div>
+        )}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-10 z-20 bg-white border border-[#E5E5E5] rounded-xl shadow-lg py-1 w-48 overflow-hidden">
+            <p className="px-3 py-2 text-xs text-gray-400 truncate">{user?.emailAddresses[0]?.emailAddress}</p>
+            <div className="border-t border-[#E5E5E5] my-1" />
+            <Link href="/settings" onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+              <span>⚙️</span> Settings
+            </Link>
+            <div className="border-t border-[#E5E5E5] my-1" />
+            <SignOutButton>
+              <button type="button"
+                className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                <span>→</span> Sign out
+              </button>
+            </SignOutButton>
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 

@@ -211,19 +211,24 @@ export default function CheckInCard({
         <div className="w-8 h-8 rounded-full border-2 border-[#185FA5] border-t-transparent animate-spin flex-shrink-0" />
       ) : (() => {
         let progress = 0
+        let ringCompleted = false
         if (isBinary) {
           progress = isCompleted ? 1 : 0
+          ringCompleted = isCompleted
         } else if (habit.goal_mode === 'target' && habit.goal_value) {
           progress = (completionValue ?? 0) / habit.goal_value
+          ringCompleted = (completionValue ?? 0) >= habit.goal_value
         } else if (habit.goal_mode === 'track') {
           progress = (completionValue ?? 0) > 0 ? 1 : 0
+          ringCompleted = progress === 1
         } else if (weeklyTarget) {
           progress = (weeklyCount ?? 0) / weeklyTarget
+          ringCompleted = (weeklyCount ?? 0) >= weeklyTarget
         }
         return (
           <ProgressRing
             progress={progress}
-            isCompleted={isCompleted}
+            isCompleted={ringCompleted}
             isSkipped={isSkipped}
             onClick={!isBinary ? onQuantityClick : undefined}
           />
