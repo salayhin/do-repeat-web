@@ -3,6 +3,61 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import type { Habit } from '../db/schema'
 
+function ProgressRing({
+  progress,
+  isCompleted,
+  isSkipped,
+  onClick,
+}: {
+  progress: number
+  isCompleted: boolean
+  isSkipped: boolean
+  onClick?: () => void
+}) {
+  const size = 32
+  const strokeWidth = 3
+  const r = (size - strokeWidth) / 2 - 1
+  const cx = size / 2
+  const cy = size / 2
+  const circumference = 2 * Math.PI * r
+  const clamped = Math.min(Math.max(progress, 0), 1)
+  const dashOffset = circumference * (1 - clamped)
+
+  const color = isCompleted
+    ? '#4CAF50'
+    : isSkipped
+    ? '#F59E0B'
+    : clamped > 0
+    ? '#185FA5'
+    : '#E5E5E5'
+
+  const svg = (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#E5E5E5" strokeWidth={strokeWidth} />
+      {(clamped > 0 || isSkipped || isCompleted) && (
+        <circle
+          cx={cx} cy={cy} r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={isSkipped || isCompleted ? 0 : dashOffset}
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
+  )
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="flex-shrink-0 hover:opacity-70 transition-opacity">
+        {svg}
+      </button>
+    )
+  }
+  return <div className="flex-shrink-0">{svg}</div>
+}
+
 interface CheckInCardProps {
   habit: Habit
   streak: number
@@ -151,28 +206,31 @@ export default function CheckInCard({
         </div>
       </div>
 
-      {/* Status badge */}
+      {/* Status ring */}
       {isLoading ? (
         <div className="w-8 h-8 rounded-full border-2 border-[#185FA5] border-t-transparent animate-spin flex-shrink-0" />
-      ) : isCompleted ? (
-        <div className="w-8 h-8 rounded-full bg-[#4CAF50] flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-sm font-bold">✓</span>
-        </div>
-      ) : isSkipped ? (
-        <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-sm font-bold">⊘</span>
-        </div>
-      ) : isBinary ? (
-        <div className="w-8 h-8 rounded-full border-2 border-[#E5E5E5] bg-gray-50 flex-shrink-0" />
-      ) : (
-        <button
-          type="button"
-          onClick={onQuantityClick}
-          className="w-8 h-8 rounded-full border-2 border-[#185FA5] flex items-center justify-center flex-shrink-0 hover:bg-blue-50 transition-colors"
-        >
-          <span className="text-[#185FA5] text-xs font-bold">+</span>
-        </button>
-      )}
+      ) : (() => {
+        let progress = 0
+        if (isCompleted) {
+          progress = 1
+        } else if (isBinary) {
+          progress = 0
+        } else if (habit.goal_mode === 'target' && habit.goal_value) {
+          progress = (completionValue ?? 0) / habit.goal_value
+        } else if (habit.goal_mode === 'track') {
+          progress = (completionValue ?? 0) > 0 ? 1 : 0
+        } else if (weeklyTarget) {
+          progress = (weeklyCount ?? 0) / weeklyTarget
+        }
+        return (
+          <ProgressRing
+            progress={progress}
+            isCompleted={isCompleted}
+            isSkipped={isSkipped}
+            onClick={!isBinary ? onQuantityClick : undefined}
+          />
+        )
+      })()}
 
       {/* Skip token toast */}
       {toast && (

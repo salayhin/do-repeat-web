@@ -22,7 +22,7 @@ interface HabitDayData {
 }
 
 export default function TodayPage() {
-  const { habits } = useHabitsStore()
+  const { habits, isLoading: habitsLoading } = useHabitsStore()
   const { timezone } = useUIStore()
   const [selectedDate, setSelectedDate] = useState(() => getLocalDate(timezone))
   const [isLoading, setIsLoading] = useState(false)
@@ -113,6 +113,14 @@ export default function TodayPage() {
     d.setDate(d.getDate() + 1)
     const next = d.toISOString().split('T')[0]
     if (next <= today) setSelectedDate(next)
+  }
+
+  if (habitsLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <img src="/do-repeat-logo.svg" alt="Loading" className="w-16 h-16 animate-pulse" />
+      </div>
+    )
   }
 
   if (habits.length === 0) {
