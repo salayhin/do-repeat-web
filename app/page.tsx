@@ -136,8 +136,8 @@ const FEATURES = [
   },
   {
     icon: '📊',
-    title: 'GitHub-style Heatmap',
-    description: 'See a full year of your habit history at a glance — just like your GitHub contribution graph.',
+    title: 'Daily Heatmap',
+    description: 'See a full year of your habit history at a glance — every day mapped out in one clean visual.',
   },
   {
     icon: '📈',
@@ -146,8 +146,8 @@ const FEATURES = [
   },
   {
     icon: '⏭️',
-    title: 'Skip Tokens',
-    description: 'Life happens. Use up to 3 skip tokens per month per habit — skips preserve your streak.',
+    title: 'Guilt-free Rest Days',
+    description: 'Life happens. Take up to 3 planned rest days per month per habit — your streak stays intact.',
   },
   {
     icon: '🔔',
