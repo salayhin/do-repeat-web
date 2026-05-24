@@ -15,6 +15,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <span className="text-lg font-bold text-gray-900">Do Repeat</span>
         </div>
         <NavLink href="/today" label="Check In" icon="✓" />
+        <NavLink href="/habits" label="My Habits" icon="📋" />
         <NavLink href="/reports" label="Reports" icon="📊" />
         <NavLink href="/settings" label="Settings" icon="⚙️" />
         <div className="mt-auto flex flex-col gap-2">
@@ -38,6 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E5E5] flex">
         <MobileTab href="/today" label="Check In" icon="✓" />
+        <MobileTab href="/habits" label="My Habits" icon="📋" />
         <MobileTab href="/reports" label="Reports" icon="📊" />
         <MobileTab href="/settings" label="Settings" icon="⚙️" />
       </nav>
