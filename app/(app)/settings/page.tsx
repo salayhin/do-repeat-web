@@ -1,5 +1,5 @@
 'use client'
-import { UserButton, SignOutButton } from '@clerk/nextjs'
+import { SignOutButton } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
 import { useUIStore } from '@/src/stores/uiStore'
 import { getLocalDate } from '@/src/lib/dateUtils'
@@ -82,20 +82,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="px-4 py-4 space-y-6">
-        {/* Account */}
-        <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Account
-          </h2>
-          <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E5E5E5]">
-            <UserButton />
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Profile</p>
-              <p className="text-xs text-gray-500">Manage your account</p>
-            </div>
-          </div>
-        </div>
-
         {/* Reminders */}
         <div>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
