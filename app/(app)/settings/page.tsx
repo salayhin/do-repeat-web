@@ -105,22 +105,12 @@ export default function SettingsPage() {
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
             Account
           </h2>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E5E5E5]">
-              <UserButton />
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Profile</p>
-                <p className="text-xs text-gray-500">Manage your account</p>
-              </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg border border-[#E5E5E5]">
+            <UserButton />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Profile</p>
+              <p className="text-xs text-gray-500">Manage your account</p>
             </div>
-            <SignOutButton>
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors"
-              >
-                Sign out
-              </button>
-            </SignOutButton>
           </div>
         </div>
 

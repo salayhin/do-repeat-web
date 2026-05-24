@@ -181,16 +181,7 @@ export default function TodayPage() {
         >
           ← Prev
         </button>
-        {!isToday && (
-          <button
-            type="button"
-            onClick={() => setSelectedDate(today)}
-            className="px-3 py-1.5 rounded-lg bg-[#185FA5] text-xs font-semibold text-white hover:bg-[#0C447C] transition-colors"
-          >
-            Today
-          </button>
-        )}
-        <button
+<button
           type="button"
           onClick={handleNextDay}
           disabled={isToday}

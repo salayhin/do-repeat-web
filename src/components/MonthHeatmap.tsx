@@ -5,11 +5,11 @@ interface MonthHeatmapProps {
   data: HeatmapCell[] // current month cells from getMonthCalendarData
 }
 
-const CELL = 12
-const GAP = 3
+const CELL = 28
+const GAP = 4
 const STEP = CELL + GAP
 const DAY_LABEL_W = 26
-const TOP_H = 14
+const TOP_H = 16
 
 const DAY_LABELS: Record<number, string> = { 0: 'S', 1: 'M', 2: 'T', 3: 'W', 4: 'T', 5: 'F', 6: 'S' }
 
@@ -60,7 +60,7 @@ export default function MonthHeatmap({ data }: MonthHeatmapProps) {
               key={di}
               x={0}
               y={TOP_H + di * STEP + CELL - 2}
-              fontSize={8}
+              fontSize={10}
               fill="#aaa"
               fontFamily="system-ui, sans-serif"
             >
@@ -81,11 +81,12 @@ export default function MonthHeatmap({ data }: MonthHeatmapProps) {
                 <g key={`${ci}-${di}`}>
                   <rect x={x} y={y} width={CELL} height={CELL} rx={2} fill={cellColor(cell.status)} />
                   <text
-                    x={x + CELL / 2} y={y + CELL - 2}
-                    fontSize={7}
-                    fill={cell.status === 'completed' || cell.status === 'skipped' ? '#fff' : '#999'}
+                    x={x + CELL / 2} y={y + CELL - 7}
+                    fontSize={11}
+                    fill={cell.status === 'completed' || cell.status === 'skipped' ? '#fff' : '#888'}
                     textAnchor="middle"
                     fontFamily="system-ui, sans-serif"
+                    fontWeight="500"
                   >
                     {day}
                   </text>
