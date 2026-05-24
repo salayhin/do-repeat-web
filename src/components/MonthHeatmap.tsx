@@ -52,8 +52,12 @@ export default function MonthHeatmap({ data }: MonthHeatmapProps) {
   return (
     <div>
       <p className="text-xs text-gray-400 mb-2">{monthName}</p>
-      <div className="overflow-x-auto">
-        <svg width={svgW} height={svgH} style={{ display: 'block' }}>
+      <div className="w-full">
+        <svg
+          viewBox={`0 0 ${svgW} ${svgH}`}
+          width="100%"
+          style={{ display: 'block' }}
+        >
           {/* Day-of-week labels */}
           {[0, 1, 2, 3, 4, 5, 6].map((di) => (
             <text
