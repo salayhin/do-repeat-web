@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useHabitsStore } from '@/src/stores/habitsStore'
 import { useUIStore } from '@/src/stores/uiStore'
@@ -30,6 +30,9 @@ export default function TodayPage() {
   const [quantityModalVisible, setQuantityModalVisible] = useState(false)
   const [selectedHabitData, setSelectedHabitData] = useState<HabitDayData | null>(null)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const dateInputRef = useRef<HTMLInputElement>(null)
+  const PAGE_SIZE = 10
 
   const today = getLocalDate(timezone)
   const isToday = selectedDate === today
@@ -41,10 +44,15 @@ export default function TodayPage() {
     }
   }, [habits, selectedDate])
 
+  useEffect(() => { setPage(0) }, [selectedDate, search])
+
   const loadDayData = async () => {
     setIsLoading(true)
     try {
-      const scheduledHabits = habits.filter((h) => streakLib.isScheduledForDate(h, selectedDate))
+      const scheduledHabits = habits.filter((h) =>
+        streakLib.isScheduledForDate(h, selectedDate) &&
+        (!h.version_start_date || selectedDate >= h.version_start_date)
+      )
 
       const data = await Promise.all(
         scheduledHabits.map(async (habit) => {
@@ -102,17 +110,14 @@ export default function TodayPage() {
     return habitData.filter((d) => d.habit.name.toLowerCase().includes(q))
   }, [habitData, search])
 
-  const handlePreviousDay = () => {
-    const d = new Date(selectedDate + 'T12:00:00')
-    d.setDate(d.getDate() - 1)
-    setSelectedDate(d.toISOString().split('T')[0])
-  }
+  const totalPages = Math.ceil(filteredHabitData.length / PAGE_SIZE)
+  const pagedHabitData = filteredHabitData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  const handleNextDay = () => {
-    const d = new Date(selectedDate + 'T00:00:00')
-    d.setDate(d.getDate() + 1)
-    const next = d.toISOString().split('T')[0]
-    if (next <= today) setSelectedDate(next)
+  const toLocalDateStr = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+  const handleDateChange = (val: string) => {
+    if (val && val <= today) setSelectedDate(val)
   }
 
   if (habitsLoading) {
@@ -148,19 +153,36 @@ export default function TodayPage() {
             {isToday ? 'Check In' : displayDate.toLocaleDateString('en-US', { weekday: 'long' })}
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            {displayDate.toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })}
+            {displayDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
-        <Link
-          href="/habit/create"
-          className="w-10 h-10 rounded-full bg-[#185FA5] flex items-center justify-center text-white text-2xl font-bold hover:bg-[#0C447C] transition-colors"
-        >
-          +
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* Calendar date picker */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
+              className="w-9 h-9 rounded-lg border border-[#E5E5E5] flex items-center justify-center text-gray-500 hover:border-[#185FA5] hover:text-[#185FA5] transition-colors text-base"
+              aria-label="Pick a date"
+            >
+              📅
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={selectedDate}
+              max={today}
+              onChange={(e) => handleDateChange(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
+          </div>
+          <Link
+            href="/habit/create"
+            className="w-10 h-10 rounded-full bg-[#185FA5] flex items-center justify-center text-white text-2xl font-bold hover:bg-[#0C447C] transition-colors"
+          >
+            +
+          </Link>
+        </div>
       </div>
 
       {/* Summary bar */}
@@ -179,25 +201,6 @@ export default function TodayPage() {
           )}
         </div>
       )}
-
-      {/* Date navigation */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-[#E5E5E5]">
-        <button
-          type="button"
-          onClick={handlePreviousDay}
-          className="flex-1 py-1.5 px-3 rounded-lg border border-[#E5E5E5] text-xs font-semibold text-[#185FA5] hover:bg-blue-50 transition-colors"
-        >
-          ← Prev
-        </button>
-<button
-          type="button"
-          onClick={handleNextDay}
-          disabled={isToday}
-          className="flex-1 py-1.5 px-3 rounded-lg border border-[#E5E5E5] text-xs font-semibold text-[#185FA5] hover:bg-blue-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Next →
-        </button>
-      </div>
 
       {/* Search bar */}
       {habitData.length > 0 && (
@@ -242,7 +245,7 @@ export default function TodayPage() {
           </div>
         ) : (
           <div>
-            {filteredHabitData.map((item) => (
+            {pagedHabitData.map((item) => (
               <div key={item.habit.id}>
                 <CheckInCard
                   habit={item.habit}
@@ -266,6 +269,30 @@ export default function TodayPage() {
                 />
               </div>
             ))}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-3 pb-1">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={page === 0}
+                  className="px-4 py-1.5 text-sm font-semibold text-[#185FA5] border border-[#E5E5E5] rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  ← Prev
+                </button>
+                <span className="text-sm text-gray-500 font-medium">
+                  {page + 1} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page >= totalPages - 1}
+                  className="px-4 py-1.5 text-sm font-semibold text-[#185FA5] border border-[#E5E5E5] rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
