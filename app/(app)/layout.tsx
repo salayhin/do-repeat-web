@@ -8,14 +8,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <HabitsInitializer />
-      <main className="flex-1 pb-16 md:pb-0 md:pl-56">{children}</main>
+      {/* Mobile top header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-[#E5E5E5] flex items-center px-4 h-12">
+        <Link href="/today" className="flex items-center gap-2">
+          <span className="text-xl">🔁</span>
+          <span className="text-base font-bold text-gray-900">Do Repeat</span>
+        </Link>
+      </header>
+
+      <main className="flex-1 pb-16 pt-12 md:pt-0 md:pb-0 md:pl-56">{children}</main>
 
       {/* Desktop sidebar */}
       <nav className="hidden md:flex fixed top-0 left-0 h-full w-56 flex-col border-r border-[#E5E5E5] bg-white px-4 py-6 gap-1">
-        <div className="flex items-center gap-2 mb-8 px-2">
+        <Link href="/today" className="flex items-center gap-2 mb-8 px-2 hover:opacity-80 transition-opacity">
           <span className="text-2xl">🔁</span>
           <span className="text-lg font-bold text-gray-900">Do Repeat</span>
-        </div>
+        </Link>
         <NavLink href="/today" label="Check In" icon="✓" />
         <NavLink href="/habits" label="My Habits" icon="📋" />
         <NavLink href="/reports" label="Reports" icon="📊" />
