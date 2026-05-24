@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useHabitsStore } from '@/src/stores/habitsStore'
 import * as streakLib from '@/src/lib/streaks'
+import * as reportSelectors from '@/src/lib/reportSelectors'
+import MonthHeatmap from '@/src/components/MonthHeatmap'
 
 export default function HabitDetailPage() {
   const params = useParams()
@@ -16,7 +18,7 @@ export default function HabitDetailPage() {
   const [streak, setStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
   const [completionRate, setCompletionRate] = useState(0)
-  const [last7Days, setLast7Days] = useState<any[]>([])
+  const [monthHeatmap, setMonthHeatmap] = useState<any[]>([])
   const [isArchiving, setIsArchiving] = useState(false)
 
   useEffect(() => {
@@ -51,19 +53,7 @@ export default function HabitDetailPage() {
       const rate = streakLib.computeCompletionRate(habitData, completions, skips, 30)
       setCompletionRate(rate)
 
-      // Last 7 days
-      const today = new Date()
-      const last7 = []
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today)
-        date.setDate(date.getDate() - i)
-        const dateStr = date.toISOString().split('T')[0]
-        const isCompleted = completions.some((c: any) => c.date === dateStr)
-        const isSkipped = skips.some((s: any) => s.date === dateStr)
-        const isScheduled = streakLib.isScheduledForDate(habitData, dateStr)
-        last7.push({ date: dateStr, isCompleted, isSkipped, isScheduled })
-      }
-      setLast7Days(last7)
+      setMonthHeatmap(reportSelectors.getMonthCalendarData(habitData, completions, skips))
     } catch (err) {
       console.error('Failed to load habit:', err)
       router.push('/today')
@@ -132,32 +122,10 @@ export default function HabitDetailPage() {
         ))}
       </div>
 
-      {/* Last 7 Days */}
+      {/* Monthly heatmap */}
       <div className="px-4 py-4 border-b border-[#E5E5E5]">
-        <h3 className="text-sm font-bold text-gray-900 mb-3">Last 7 Days</h3>
-        <div className="flex gap-1.5">
-          {last7Days.map((day, idx) => {
-            let bg = '#F0F0F0'
-            if (!day.isScheduled) bg = '#F0F0F0'
-            else if (day.isCompleted) bg = '#4CAF50'
-            else if (day.isSkipped) bg = '#FFC107'
-            else bg = '#EF9A9A'
-
-            return (
-              <div
-                key={idx}
-                className="flex-1 aspect-square rounded-lg flex flex-col items-center justify-center border border-[#E5E5E5] text-xs"
-                style={{ backgroundColor: bg }}
-              >
-                <span className="font-semibold text-gray-800" style={{ fontSize: 10 }}>
-                  {new Date(day.date + 'T00:00:00').getDate()}
-                </span>
-                {day.isCompleted && <span style={{ fontSize: 10 }}>✓</span>}
-                {day.isSkipped && <span style={{ fontSize: 10 }}>⊘</span>}
-              </div>
-            )
-          })}
-        </div>
+        <h3 className="text-sm font-bold text-gray-900 mb-3">This Month</h3>
+        <MonthHeatmap data={monthHeatmap} />
       </div>
 
       {/* Details */}
