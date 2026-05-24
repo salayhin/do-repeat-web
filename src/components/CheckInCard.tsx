@@ -211,10 +211,8 @@ export default function CheckInCard({
         <div className="w-8 h-8 rounded-full border-2 border-[#185FA5] border-t-transparent animate-spin flex-shrink-0" />
       ) : (() => {
         let progress = 0
-        if (isCompleted) {
-          progress = 1
-        } else if (isBinary) {
-          progress = 0
+        if (isBinary) {
+          progress = isCompleted ? 1 : 0
         } else if (habit.goal_mode === 'target' && habit.goal_value) {
           progress = (completionValue ?? 0) / habit.goal_value
         } else if (habit.goal_mode === 'track') {
