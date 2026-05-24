@@ -19,7 +19,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <NavLink href="/today" label="Check In" icon="✓" />
         <NavLink href="/habits" label="My Habits" icon="📋" />
         <NavLink href="/reports" label="Reports" icon="📊" />
-        <NavLink href="/settings" label="Settings" icon="⚙️" />
         <div className="mt-auto">
           <UserMenu />
         </div>
