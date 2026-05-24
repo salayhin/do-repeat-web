@@ -52,7 +52,7 @@ export default function MonthHeatmap({ data }: MonthHeatmapProps) {
   return (
     <div>
       <p className="text-xs text-gray-400 mb-2">{monthName}</p>
-      <div className="w-full">
+      <div className="w-full sm:max-w-sm">
         <svg
           viewBox={`0 0 ${svgW} ${svgH}`}
           width="100%"
