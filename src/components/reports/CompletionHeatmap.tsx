@@ -6,11 +6,11 @@ interface CompletionHeatmapProps {
   data: HeatmapCell[]
 }
 
-const CELL = 13
-const GAP = 3
+const CELL = 10
+const GAP = 2
 const STEP = CELL + GAP
-const DAY_LABEL_W = 28
-const MONTH_LABEL_H = 18
+const DAY_LABEL_W = 26
+const MONTH_LABEL_H = 28
 
 // Show label only for Mon(1), Wed(3), Fri(5)
 const DAY_LABELS: Record<number, string> = { 1: 'Mon', 3: 'Wed', 5: 'Fri' }
@@ -50,7 +50,8 @@ export default function CompletionHeatmap({ data }: CompletionHeatmapProps) {
     const month = cell.date.slice(0, 7) // YYYY-MM
     if (!seen.has(month)) {
       seen.add(month)
-      const label = new Date(cell.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })
+      const d = new Date(cell.date + 'T00:00:00')
+      const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
       monthLabels.push({ label, weekIndex: cell.week })
     }
   }
@@ -70,22 +71,21 @@ export default function CompletionHeatmap({ data }: CompletionHeatmapProps) {
           height={svgH}
           style={{ display: 'block', minWidth: svgW }}
         >
-          {/* Month labels */}
+          {/* Month labels — two lines: "Jun" + "'25" */}
           {monthLabels.map(({ label, weekIndex }, i) => {
-            // Skip if too close to previous label
             const prev = monthLabels[i - 1]
-            if (prev && weekIndex - prev.weekIndex < 3) return null
+            if (prev && weekIndex - prev.weekIndex < 4) return null
+            const [mon, yr] = label.split(' ')
+            const x = DAY_LABEL_W + weekIndex * STEP
             return (
-              <text
-                key={label + weekIndex}
-                x={DAY_LABEL_W + weekIndex * STEP}
-                y={12}
-                fontSize={10}
-                fill="#767676"
-                fontFamily="system-ui, sans-serif"
-              >
-                {label}
-              </text>
+              <g key={label + weekIndex}>
+                <text x={x} y={11} fontSize={9} fontWeight="600" fill="#555" fontFamily="system-ui, sans-serif">
+                  {mon}
+                </text>
+                <text x={x} y={21} fontSize={8} fill="#999" fontFamily="system-ui, sans-serif">
+                  {yr ? `'${yr}` : ''}
+                </text>
+              </g>
             )
           })}
 
@@ -156,19 +156,17 @@ export default function CompletionHeatmap({ data }: CompletionHeatmapProps) {
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-3 mt-3 justify-end">
-        <div className="flex items-center gap-1">
-          <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: '#ebedf0' }} />
-          <span className="text-xs text-gray-400">No data</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: '#40c463' }} />
-          <span className="text-xs text-gray-400">Completed</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: '#b6d96c' }} />
-          <span className="text-xs text-gray-400">Skipped</span>
-        </div>
+      <div className="flex items-center gap-3 mt-2 justify-end">
+        {[
+          { color: '#ebedf0', label: 'No data' },
+          { color: '#40c463', label: 'Completed' },
+          { color: '#b6d96c', label: 'Skipped' },
+        ].map(({ color, label }) => (
+          <div key={label} className="flex items-center gap-1">
+            <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: color }} />
+            <span className="text-[10px] text-gray-400">{label}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
