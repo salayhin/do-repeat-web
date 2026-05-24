@@ -132,12 +132,12 @@ const FEATURES = [
   {
     icon: '🔥',
     title: 'Streaks',
-    description: 'Watch your streak grow every day you show up. Current and best streak tracked automatically.',
+    description: 'Day-by-day streaks for fixed habits. Week-by-week streaks for flexible frequency habits. Both tracked automatically.',
   },
   {
     icon: '📊',
     title: 'Daily Heatmap',
-    description: 'See a full year of your habit history at a glance — every day mapped out in one clean visual.',
+    description: 'A full year of history in one view. Green for done, gray for rest — just like your GitHub contribution graph.',
   },
   {
     icon: '📈',
@@ -152,12 +152,12 @@ const FEATURES = [
   {
     icon: '🔔',
     title: 'Email Reminders',
-    description: 'Get a daily email digest of your due habits at the time you choose, adjusted to your timezone.',
+    description: 'Get a daily reminder email at the time you choose, adjusted to your timezone.',
   },
   {
-    icon: '🎯',
+    icon: '🗓️',
     title: 'Flexible Scheduling',
-    description: 'Daily, specific days of the week, or N times per week — you set the rhythm.',
+    description: 'Daily, specific days of the week (Mon/Wed/Fri), or a weekly frequency goal (3×/week) — you set the rhythm.',
   },
   {
     icon: '📦',
