@@ -6,125 +6,163 @@ interface CompletionHeatmapProps {
   data: HeatmapCell[]
 }
 
-function getCellColor(status: string): string {
+const CELL = 13
+const GAP = 3
+const STEP = CELL + GAP
+const DAY_LABEL_W = 28
+const MONTH_LABEL_H = 18
+
+// Show label only for Mon(1), Wed(3), Fri(5)
+const DAY_LABELS: Record<number, string> = { 1: 'Mon', 3: 'Wed', 5: 'Fri' }
+
+function cellColor(status: string): string {
   switch (status) {
-    case 'completed':
-      return '#2E7D32'
-    case 'skipped':
-      return '#F9A825'
-    case 'missed':
-      return '#EF9A9A'
-    default:
-      return '#F0F0F0'
+    case 'completed': return '#216e39'
+    case 'skipped':   return '#F9A825'
+    case 'missed':    return '#f5c6c6'
+    default:          return '#ebedf0'
   }
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+  })
 }
 
 export default function CompletionHeatmap({ data }: CompletionHeatmapProps) {
   const [tooltip, setTooltip] = useState<HeatmapCell | null>(null)
 
-  // Group by week
-  const weeks: HeatmapCell[][] = []
-  for (let i = 0; i < 12; i++) {
-    weeks.push(data.filter((cell) => cell.week === i))
+  if (!data.length) return null
+
+  // Group cells into week columns (by cell.week)
+  const numWeeks = (data[data.length - 1]?.week ?? 0) + 1
+  const weekCols: (HeatmapCell | null)[][] = Array.from({ length: numWeeks }, (_, wi) =>
+    Array.from({ length: 7 }, (_, di) =>
+      data.find((c) => c.week === wi && c.dayOfWeek === di) ?? null
+    )
+  )
+
+  // Compute month label positions: find the first week of each month
+  const monthLabels: { label: string; weekIndex: number }[] = []
+  const seen = new Set<string>()
+  for (const cell of data) {
+    const month = cell.date.slice(0, 7) // YYYY-MM
+    if (!seen.has(month)) {
+      seen.add(month)
+      const label = new Date(cell.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })
+      monthLabels.push({ label, weekIndex: cell.week })
+    }
   }
 
-  const CELL_SIZE = 14
-  const CELL_GAP = 3
-  const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+  const svgW = DAY_LABEL_W + numWeeks * STEP
+  const svgH = MONTH_LABEL_H + 7 * STEP
 
   return (
     <div className="px-4 py-4 bg-white">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Last 12 Weeks</h3>
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+        Last {numWeeks} Weeks
+      </h3>
 
       <div className="overflow-x-auto">
-        <div className="flex gap-1 mb-1 pl-8">
-          {weeks.map((_, wi) => (
-            <div key={wi} className="flex-1 text-center" style={{ minWidth: CELL_SIZE }}>
-              <span className="text-[9px] text-gray-400">W{wi + 1}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-1">
-          {/* Day labels on left */}
-          <div className="flex flex-col gap-[3px] w-7">
-            {DAY_LABELS.map((d, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-center text-[9px] text-gray-400"
-                style={{ height: CELL_SIZE }}
+        <svg
+          width={svgW}
+          height={svgH}
+          style={{ display: 'block', minWidth: svgW }}
+        >
+          {/* Month labels */}
+          {monthLabels.map(({ label, weekIndex }, i) => {
+            // Skip if too close to previous label
+            const prev = monthLabels[i - 1]
+            if (prev && weekIndex - prev.weekIndex < 3) return null
+            return (
+              <text
+                key={label + weekIndex}
+                x={DAY_LABEL_W + weekIndex * STEP}
+                y={12}
+                fontSize={10}
+                fill="#767676"
+                fontFamily="system-ui, sans-serif"
               >
-                {d}
-              </div>
-            ))}
-          </div>
+                {label}
+              </text>
+            )
+          })}
 
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px] flex-1" style={{ minWidth: CELL_SIZE }}>
-              {Array.from({ length: 7 }, (_, di) => {
-                const cell = week.find((c) => c.dayOfWeek === di)
-                if (!cell) {
-                  return (
-                    <div
-                      key={di}
-                      style={{ width: CELL_SIZE, height: CELL_SIZE, backgroundColor: 'transparent' }}
-                    />
-                  )
-                }
+          {/* Day labels */}
+          {[0, 1, 2, 3, 4, 5, 6].map((di) => {
+            const label = DAY_LABELS[di]
+            if (!label) return null
+            return (
+              <text
+                key={di}
+                x={0}
+                y={MONTH_LABEL_H + di * STEP + CELL - 2}
+                fontSize={10}
+                fill="#767676"
+                fontFamily="system-ui, sans-serif"
+              >
+                {label}
+              </text>
+            )
+          })}
+
+          {/* Cells */}
+          {weekCols.map((week, wi) =>
+            week.map((cell, di) => {
+              const x = DAY_LABEL_W + wi * STEP
+              const y = MONTH_LABEL_H + di * STEP
+              if (!cell) {
                 return (
-                  <div
-                    key={di}
-                    onClick={() => setTooltip(tooltip?.date === cell.date ? null : cell)}
-                    className="rounded-sm cursor-pointer hover:opacity-80 transition-opacity relative"
-                    style={{
-                      width: CELL_SIZE,
-                      height: CELL_SIZE,
-                      backgroundColor: getCellColor(cell.status),
-                      border: '1px solid rgba(0,0,0,0.05)',
-                    }}
-                    title={`${cell.date}: ${cell.status}`}
+                  <rect
+                    key={`${wi}-${di}`}
+                    x={x} y={y}
+                    width={CELL} height={CELL}
+                    rx={2} ry={2}
+                    fill="#ebedf0"
                   />
                 )
-              })}
-            </div>
-          ))}
-        </div>
+              }
+              const isActive = tooltip?.date === cell.date
+              return (
+                <rect
+                  key={`${wi}-${di}`}
+                  x={x} y={y}
+                  width={CELL} height={CELL}
+                  rx={2} ry={2}
+                  fill={cellColor(cell.status)}
+                  stroke={isActive ? '#185FA5' : 'none'}
+                  strokeWidth={isActive ? 1.5 : 0}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setTooltip(isActive ? null : cell)}
+                >
+                  <title>{`${cell.date}: ${cell.status}${cell.value !== undefined ? ` (${cell.value})` : ''}`}</title>
+                </rect>
+              )
+            })
+          )}
+        </svg>
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-4 mt-3 justify-center">
-        {[
-          { status: 'completed', label: 'Completed' },
-          { status: 'skipped', label: 'Skipped' },
-          { status: 'missed', label: 'Missed' },
-          { status: 'empty', label: 'Rest' },
-        ].map(({ status, label }) => (
-          <div key={status} className="flex items-center gap-1.5">
-            <div
-              className="w-3 h-3 rounded-sm"
-              style={{ backgroundColor: getCellColor(status) }}
-            />
-            <span className="text-xs text-gray-500">{label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Tooltip popup */}
+      {/* Tooltip */}
       {tooltip && (
-        <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-[#E5E5E5] text-sm">
-          <p className="font-semibold text-gray-900">
-            {new Date(tooltip.date + 'T00:00:00').toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
-          <p className="text-gray-600 mt-0.5 capitalize">{tooltip.status}</p>
+        <div className="mt-2 px-3 py-2 bg-gray-50 rounded-lg border border-[#E5E5E5] text-sm inline-block">
+          <span className="font-semibold text-gray-900">{formatDate(tooltip.date)}</span>
+          <span className="ml-2 capitalize text-gray-500">{tooltip.status}</span>
           {tooltip.value !== undefined && (
-            <p className="text-gray-500 text-xs mt-0.5">Value: {tooltip.value}</p>
+            <span className="ml-2 text-gray-400 text-xs">({tooltip.value})</span>
           )}
         </div>
       )}
+
+      {/* Legend */}
+      <div className="flex items-center gap-1 mt-3 justify-end">
+        <span className="text-xs text-gray-400 mr-1">Less</span>
+        {['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'].map((c) => (
+          <div key={c} className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: c }} />
+        ))}
+        <span className="text-xs text-gray-400 ml-1">More</span>
+      </div>
     </div>
   )
 }

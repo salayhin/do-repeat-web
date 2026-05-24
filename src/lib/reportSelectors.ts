@@ -35,7 +35,7 @@ export function getHeatmapData(
   habit: Habit,
   completions: HabitCompletion[],
   skips: HabitSkip[],
-  weeks: number = 12
+  weeks: number = 52
 ): HeatmapCell[] {
   const cells: HeatmapCell[] = []
   const today = new Date()
