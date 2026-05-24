@@ -32,7 +32,13 @@ export default function CheckInCard({
 }: CheckInCardProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   const isBinary = habit.type === 'binary'
 
@@ -70,8 +76,7 @@ export default function CheckInCard({
         body: JSON.stringify({ date }),
       })
       if (!res.ok) {
-        const data = await res.json()
-        alert(data.error || 'Cannot skip')
+        showToast('Could not skip. Please try again.')
         return
       }
       onUpdate()
@@ -167,6 +172,15 @@ export default function CheckInCard({
         >
           <span className="text-[#185FA5] text-xs font-bold">+</span>
         </button>
+      )}
+
+      {/* Skip token toast */}
+      {toast && (
+        <div className="absolute -top-8 left-0 right-0 flex justify-center pointer-events-none">
+          <span className="bg-gray-800 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-lg">
+            {toast}
+          </span>
+        </div>
       )}
 
       {/* Menu button */}

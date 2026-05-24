@@ -17,7 +17,7 @@ const DAY_LABELS: Record<number, string> = { 1: 'Mon', 3: 'Wed', 5: 'Fri' }
 function cellColor(status: string): string {
   switch (status) {
     case 'completed': return '#40c463'
-    case 'skipped':   return '#b6d96c'
+    case 'skipped':   return '#6b7280'
     case 'missed':    return '#ebedf0'
     default:          return '#ebedf0'
   }
@@ -128,7 +128,7 @@ export default function CompletionHeatmap({ data }: CompletionHeatmapProps) {
         {[
           { color: '#ebedf0', label: 'No data' },
           { color: '#40c463', label: 'Completed' },
-          { color: '#b6d96c', label: 'Skipped' },
+          { color: '#6b7280', label: 'Skipped' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1">
             <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: color }} />

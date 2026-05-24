@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { logSkip, removeSkip, canSkip, getTokensRemaining } from '@/src/db/queries/skips'
+import { logSkip, removeSkip } from '@/src/db/queries/skips'
 
 export async function GET(
   request: Request,
@@ -13,9 +13,7 @@ export async function GET(
 
   const { id: habitId } = await params
   try {
-    const able = await canSkip(userId, habitId)
-    const tokensRemaining = await getTokensRemaining(userId, habitId)
-    return NextResponse.json({ canSkip: able, tokensRemaining })
+    return NextResponse.json({ canSkip: true, tokensRemaining: null })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to check skip status' }, { status: 500 })
   }
@@ -32,11 +30,6 @@ export async function POST(
   try {
     const body = await request.json()
     const { date } = body
-
-    const able = await canSkip(userId, habitId)
-    if (!able) {
-      return NextResponse.json({ error: 'No skip tokens remaining this month' }, { status: 400 })
-    }
 
     const skip = await logSkip(userId, habitId, date)
     return NextResponse.json(skip, { status: 201 })

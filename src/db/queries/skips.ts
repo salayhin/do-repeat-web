@@ -21,7 +21,7 @@ export async function logSkip(userId: string, habitId: string, date: string): Pr
   // Upsert token usage - increment
   await db
     .insert(skip_token_usage)
-    .values({ habit_id: habitId, user_id: userId, month, tokens_used: 1, tokens_max: 3 })
+    .values({ habit_id: habitId, user_id: userId, month, tokens_used: 1, tokens_max: 0 })
     .onConflictDoUpdate({
       target: [skip_token_usage.habit_id, skip_token_usage.month],
       set: {
@@ -62,9 +62,8 @@ export async function getSkipsByHabit(userId: string, habitId: string): Promise<
     .orderBy(habit_skips.date)
 }
 
-export async function canSkip(userId: string, habitId: string): Promise<boolean> {
-  const remaining = await getTokensRemaining(userId, habitId)
-  return remaining > 0
+export async function canSkip(_userId: string, _habitId: string): Promise<boolean> {
+  return true
 }
 
 export async function getTokensRemaining(userId: string, habitId: string): Promise<number> {

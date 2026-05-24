@@ -12,8 +12,8 @@ export default async function Home() {
       {/* Nav */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5] max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🔁</span>
-          <span className="text-lg font-bold">Do Repeat</span>
+          <img src="/do-repeat-logo.svg" alt="Do Repeat" className="w-8 h-8" />
+          <span className="text-lg font-bold">do repeat</span>
         </div>
         <div className="flex items-center gap-3">
           <Link
@@ -147,7 +147,7 @@ const FEATURES = [
   {
     icon: '⏭️',
     title: 'Guilt-free Rest Days',
-    description: 'Life happens. Take up to 3 planned rest days per month per habit — your streak stays intact.',
+    description: 'Life happens. Take as many rest days as you need — your streak stays intact.',
   },
   {
     icon: '🔔',
