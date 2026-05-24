@@ -11,6 +11,8 @@ interface CheckInCardProps {
   isSkipped: boolean
   date: string
   completionValue?: number
+  weeklyCount?: number
+  weeklyTarget?: number
   onUpdate: () => void
   onQuantityClick?: () => void
 }
@@ -23,6 +25,8 @@ export default function CheckInCard({
   isSkipped,
   date,
   completionValue,
+  weeklyCount,
+  weeklyTarget,
   onUpdate,
   onQuantityClick,
 }: CheckInCardProps) {
@@ -123,13 +127,22 @@ export default function CheckInCard({
 
       {/* Stats */}
       <div className="flex items-center gap-3 mr-1">
-        <div className="text-center">
-          <p className="text-sm font-bold text-[#0C447C]">{streak}</p>
-          <p className="text-[10px] text-gray-400">🔥</p>
-        </div>
+        {weeklyTarget !== undefined ? (
+          <div className="text-center">
+            <p className={`text-sm font-bold ${weeklyCount !== undefined && weeklyCount >= weeklyTarget ? 'text-green-600' : 'text-[#0C447C]'}`}>
+              {weeklyCount ?? 0}/{weeklyTarget}
+            </p>
+            <p className="text-[10px] text-gray-400">this wk</p>
+          </div>
+        ) : (
+          <div className="text-center">
+            <p className="text-sm font-bold text-[#0C447C]">{streak}</p>
+            <p className="text-[10px] text-gray-400">🔥</p>
+          </div>
+        )}
         <div className="text-center">
           <p className="text-sm font-bold text-[#0C447C]">{Math.round(completionRate * 100)}%</p>
-          <p className="text-[10px] text-gray-400">30d</p>
+          <p className="text-[10px] text-gray-400">{weeklyTarget !== undefined ? '12wk' : '30d'}</p>
         </div>
       </div>
 

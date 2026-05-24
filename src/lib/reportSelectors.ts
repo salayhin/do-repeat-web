@@ -70,7 +70,8 @@ export function getHeatmapData(
     } else if (isSkipped) {
       status = 'skipped'
     } else {
-      status = 'missed'
+      // Frequency habits: any uncompeted day is just 'empty' — only completed days matter
+      status = habit.schedule_type === 'frequency' ? 'empty' : 'missed'
     }
 
     const value = completions.find((c) => c.date === dateStr)?.value ?? undefined

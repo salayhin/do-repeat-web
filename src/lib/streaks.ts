@@ -150,6 +150,85 @@ export function computeBestStreak(habit: Habit, completions: any[], skips: any[]
   return maxStreak
 }
 
+export function getCompletionsThisWeek(completions: any[]): number {
+  const today = new Date()
+  const sunday = new Date(today)
+  sunday.setDate(today.getDate() - today.getDay())
+  const sundayStr = sunday.toISOString().split('T')[0]
+  const todayStr = today.toISOString().split('T')[0]
+  return completions.filter((c) => c.date >= sundayStr && c.date <= todayStr && c.value > 0).length
+}
+
+export function computeWeeklyStreak(habit: Habit, completions: any[]): number {
+  const target = habit.frequency_target ?? 1
+  if (completions.length === 0) return 0
+
+  const today = new Date()
+  let streak = 0
+
+  // Start from last completed week (skip current in-progress week)
+  let weekSunday = new Date(today)
+  weekSunday.setDate(today.getDate() - today.getDay() - 7)
+
+  for (let i = 0; i < 52; i++) {
+    const weekSat = new Date(weekSunday)
+    weekSat.setDate(weekSunday.getDate() + 6)
+
+    const sunStr = weekSunday.toISOString().split('T')[0]
+    const satStr = weekSat.toISOString().split('T')[0]
+
+    if (habit.version_start_date && satStr < habit.version_start_date.slice(0, 10)) break
+
+    const count = completions.filter(
+      (c) => c.date >= sunStr && c.date <= satStr && c.value > 0
+    ).length
+
+    if (count >= target) {
+      streak++
+    } else {
+      break
+    }
+
+    weekSunday.setDate(weekSunday.getDate() - 7)
+  }
+
+  return streak
+}
+
+export function computeWeeklyCompletionRate(habit: Habit, completions: any[], weeks: number = 12): number {
+  const target = habit.frequency_target ?? 1
+  if (completions.length === 0) return 0
+
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  let metWeeks = 0
+  let totalWeeks = 0
+
+  let weekSunday = new Date(today)
+  weekSunday.setDate(today.getDate() - today.getDay())
+
+  for (let i = 0; i < weeks; i++) {
+    const weekSat = new Date(weekSunday)
+    weekSat.setDate(weekSunday.getDate() + 6)
+
+    const sunStr = weekSunday.toISOString().split('T')[0]
+    if (sunStr > todayStr) { weekSunday.setDate(weekSunday.getDate() - 7); continue }
+
+    const endStr = i === 0 ? todayStr : weekSat.toISOString().split('T')[0]
+    const count = completions.filter(
+      (c) => c.date >= sunStr && c.date <= endStr && c.value > 0
+    ).length
+
+    totalWeeks++
+    if (count >= target) metWeeks++
+
+    weekSunday.setDate(weekSunday.getDate() - 7)
+  }
+
+  if (totalWeeks === 0) return 0
+  return Math.round((metWeeks / totalWeeks) * 100) / 100
+}
+
 export function computeCompletionRate(
   habit: Habit,
   completions: any[],

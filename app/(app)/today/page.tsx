@@ -15,6 +15,8 @@ interface HabitDayData {
   completionValue: number
   completions: any[]
   skips: any[]
+  weeklyCount?: number
+  weeklyTarget?: number
 }
 
 export default function TodayPage() {
@@ -52,8 +54,15 @@ export default function TodayPage() {
 
           const isCompleted = streakLib.isCompletedForDate(completions, selectedDate)
           const isSkipped = streakLib.isSkippedForDate(skips, selectedDate)
-          const currentStreak = streakLib.computeCurrentStreak(habit, completions, skips)
-          const completionRate = streakLib.computeCompletionRate(habit, completions, skips, 30)
+          const isFrequency = habit.schedule_type === 'frequency'
+          const currentStreak = isFrequency
+            ? streakLib.computeWeeklyStreak(habit, completions)
+            : streakLib.computeCurrentStreak(habit, completions, skips)
+          const completionRate = isFrequency
+            ? streakLib.computeWeeklyCompletionRate(habit, completions)
+            : streakLib.computeCompletionRate(habit, completions, skips, 30)
+          const weeklyCount = isFrequency ? streakLib.getCompletionsThisWeek(completions) : undefined
+          const weeklyTarget = isFrequency ? (habit.frequency_target ?? undefined) : undefined
           const todayCompletion = completions.find((c: any) => c.date === selectedDate)
 
           return {
@@ -65,6 +74,8 @@ export default function TodayPage() {
             completionValue: todayCompletion?.value || 0,
             completions,
             skips,
+            weeklyCount,
+            weeklyTarget,
           }
         })
       )
@@ -239,6 +250,8 @@ export default function TodayPage() {
                   isSkipped={item.isSkipped}
                   date={selectedDate}
                   completionValue={item.completionValue}
+                  weeklyCount={item.weeklyCount}
+                  weeklyTarget={item.weeklyTarget}
                   onUpdate={loadDayData}
                   onQuantityClick={
                     item.habit.type !== 'binary'
