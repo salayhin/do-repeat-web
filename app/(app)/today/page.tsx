@@ -24,6 +24,7 @@ export default function TodayPage() {
   const [habitData, setHabitData] = useState<HabitDayData[]>([])
   const [quantityModalVisible, setQuantityModalVisible] = useState(false)
   const [selectedHabitData, setSelectedHabitData] = useState<HabitDayData | null>(null)
+  const [search, setSearch] = useState('')
 
   const today = new Date().toISOString().split('T')[0]
   const isToday = selectedDate === today
@@ -81,6 +82,12 @@ export default function TodayPage() {
     [habitData]
   )
 
+  const filteredHabitData = useMemo(() => {
+    if (!search.trim()) return habitData
+    const q = search.toLowerCase()
+    return habitData.filter((d) => d.habit.name.toLowerCase().includes(q))
+  }, [habitData, search])
+
   const handlePreviousDay = () => {
     const d = new Date(selectedDate + 'T00:00:00')
     d.setDate(d.getDate() - 1)
@@ -116,7 +123,7 @@ export default function TodayPage() {
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5]">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isToday ? 'Today' : displayDate.toLocaleDateString('en-US', { weekday: 'long' })}
+            {isToday ? 'Check In' : displayDate.toLocaleDateString('en-US', { weekday: 'long' })}
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
             {displayDate.toLocaleDateString('en-US', {
@@ -179,6 +186,31 @@ export default function TodayPage() {
         </button>
       </div>
 
+      {/* Search bar */}
+      {habitData.length > 0 && (
+        <div className="px-4 py-2 border-b border-[#E5E5E5]">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search habits…"
+              className="w-full pl-8 pr-8 py-2 text-sm border border-[#E5E5E5] rounded-lg focus:outline-none focus:border-[#185FA5] bg-gray-50"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div className="px-3 py-3">
         {isLoading ? (
@@ -190,9 +222,14 @@ export default function TodayPage() {
             <div className="text-4xl mb-3">😴</div>
             <p className="text-gray-400 text-sm">No habits scheduled for this day</p>
           </div>
+        ) : filteredHabitData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="text-4xl mb-3">🔍</div>
+            <p className="text-gray-400 text-sm">No habits match &ldquo;{search}&rdquo;</p>
+          </div>
         ) : (
           <div>
-            {habitData.map((item) => (
+            {filteredHabitData.map((item) => (
               <div key={item.habit.id}>
                 <CheckInCard
                   habit={item.habit}
