@@ -12,7 +12,9 @@ export async function GET() {
     const habits = await listActiveHabits(userId)
     return NextResponse.json(habits)
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch habits' }, { status: 500 })
+    console.error('[GET /api/habits]', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: 'Failed to fetch habits', detail: message }, { status: 500 })
   }
 }
 
@@ -58,6 +60,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(habit, { status: 201 })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create habit' }, { status: 500 })
+    console.error('[POST /api/habits]', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: 'Failed to create habit', detail: message }, { status: 500 })
   }
 }

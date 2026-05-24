@@ -3,12 +3,25 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/src/db/client'
 import { habits } from '@/src/db/schema'
-import { eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { sendReminderEmail } from '@/src/lib/email'
 import { clerkClient } from '@clerk/nextjs/server'
 
+function localHourInTimezone(timezone: string): number {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      hour12: false,
+    }).formatToParts(new Date())
+    const h = parts.find((p) => p.type === 'hour')?.value
+    return h ? parseInt(h, 10) % 24 : 0
+  } catch {
+    return new Date().getUTCHours()
+  }
+}
+
 export async function GET(request: Request) {
-  // Verify cron secret
   const authHeader = request.headers.get('Authorization')
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
@@ -16,30 +29,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const now = new Date()
-    const currentHour = now.getUTCHours().toString().padStart(2, '0')
-    const currentMinute = '00' // We run hourly, so only match :00
-
-    // Get all habits with reminders enabled that match current hour
+    // Get all habits with reminders enabled
     const allHabits = await db
       .select()
       .from(habits)
       .where(eq(habits.reminder_enabled, 1))
 
-    // Filter by reminder time matching current hour
-    const dueHabits = allHabits.filter((h) => {
-      if (!h.reminder_time) return false
-      const [hh] = h.reminder_time.split(':')
-      return hh === currentHour
-    })
-
-    if (dueHabits.length === 0) {
-      return NextResponse.json({ sent: 0 })
-    }
+    if (allHabits.length === 0) return NextResponse.json({ sent: 0 })
 
     // Group by user_id
-    const byUser: Record<string, typeof dueHabits> = {}
-    for (const habit of dueHabits) {
+    const byUser: Record<string, typeof allHabits> = {}
+    for (const habit of allHabits) {
       if (!byUser[habit.user_id]) byUser[habit.user_id] = []
       byUser[habit.user_id].push(habit)
     }
@@ -53,12 +53,21 @@ export async function GET(request: Request) {
         const email = user.emailAddresses[0]?.emailAddress
         if (!email) continue
 
+        const timezone = (user.publicMetadata?.timezone as string) || 'UTC'
+        const localHour = localHourInTimezone(timezone)
+
+        // Only send to users whose reminder time matches the current local hour
+        const dueHabits = userHabits.filter((h) => {
+          if (!h.reminder_time) return false
+          const [hh] = h.reminder_time.split(':')
+          return parseInt(hh, 10) === localHour
+        })
+
+        if (dueHabits.length === 0) continue
+
         await sendReminderEmail(
           email,
-          userHabits.map((h) => ({
-            name: h.name,
-            icon: h.icon || '⭐',
-          }))
+          dueHabits.map((h) => ({ name: h.name, icon: h.icon || '⭐' }))
         )
         sent++
       } catch (err) {
@@ -68,6 +77,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ sent })
   } catch (error) {
+    console.error('[cron/reminders]', error)
     return NextResponse.json({ error: 'Cron failed' }, { status: 500 })
   }
 }

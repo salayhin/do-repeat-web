@@ -2,8 +2,31 @@
 import { UserButton } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
 
+const TIMEZONES = [
+  { label: 'UTC', value: 'UTC' },
+  { label: 'London (GMT/BST)', value: 'Europe/London' },
+  { label: 'Paris / Berlin (CET)', value: 'Europe/Paris' },
+  { label: 'Moscow (MSK)', value: 'Europe/Moscow' },
+  { label: 'Dubai (GST)', value: 'Asia/Dubai' },
+  { label: 'Karachi (PKT)', value: 'Asia/Karachi' },
+  { label: 'Dhaka (BST)', value: 'Asia/Dhaka' },
+  { label: 'Kolkata (IST)', value: 'Asia/Kolkata' },
+  { label: 'Bangkok (ICT)', value: 'Asia/Bangkok' },
+  { label: 'Singapore / KL (SGT)', value: 'Asia/Singapore' },
+  { label: 'Tokyo / Seoul (JST)', value: 'Asia/Tokyo' },
+  { label: 'Sydney (AEST)', value: 'Australia/Sydney' },
+  { label: 'New York (ET)', value: 'America/New_York' },
+  { label: 'Chicago (CT)', value: 'America/Chicago' },
+  { label: 'Denver (MT)', value: 'America/Denver' },
+  { label: 'Los Angeles (PT)', value: 'America/Los_Angeles' },
+  { label: 'São Paulo (BRT)', value: 'America/Sao_Paulo' },
+]
+
 export default function SettingsPage() {
   const [isDark, setIsDark] = useState(false)
+  const [timezone, setTimezone] = useState('UTC')
+  const [tzSaving, setTzSaving] = useState(false)
+  const [tzSaved, setTzSaved] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('theme')
@@ -11,6 +34,10 @@ export default function SettingsPage() {
       setIsDark(true)
       document.documentElement.classList.add('dark')
     }
+    fetch('/api/settings/timezone')
+      .then((r) => r.json())
+      .then((d) => { if (d.timezone) setTimezone(d.timezone) })
+      .catch(() => {})
   }, [])
 
   const toggleTheme = () => {
@@ -25,6 +52,25 @@ export default function SettingsPage() {
     }
   }
 
+  const handleTimezoneChange = async (tz: string) => {
+    setTimezone(tz)
+    setTzSaving(true)
+    setTzSaved(false)
+    try {
+      await fetch('/api/settings/timezone', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone: tz }),
+      })
+      setTzSaved(true)
+      setTimeout(() => setTzSaved(false), 2000)
+    } catch {
+      alert('Failed to save timezone')
+    } finally {
+      setTzSaving(false)
+    }
+  }
+
   const handleExport = async (format: 'csv' | 'json') => {
     try {
       const res = await fetch(`/api/export?format=${format}`)
@@ -36,7 +82,7 @@ export default function SettingsPage() {
       a.download = `do-repeat-export.${format}`
       a.click()
       URL.revokeObjectURL(url)
-    } catch (err) {
+    } catch {
       alert('Export failed. Please try again.')
     }
   }
@@ -59,6 +105,36 @@ export default function SettingsPage() {
               <p className="text-sm font-semibold text-gray-900">Profile</p>
               <p className="text-xs text-gray-500">Manage your account</p>
             </div>
+          </div>
+        </div>
+
+        {/* Timezone */}
+        <div>
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            Reminders
+          </h2>
+          <div className="p-3 rounded-lg border border-[#E5E5E5]">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Timezone</p>
+                <p className="text-xs text-gray-500">Used for daily reminder emails</p>
+              </div>
+              {tzSaved && (
+                <span className="text-xs text-green-600 font-medium">Saved ✓</span>
+              )}
+            </div>
+            <select
+              value={timezone}
+              onChange={(e) => handleTimezoneChange(e.target.value)}
+              disabled={tzSaving}
+              className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#185FA5] bg-white disabled:opacity-60"
+            >
+              {TIMEZONES.map((tz) => (
+                <option key={tz.value} value={tz.value}>
+                  {tz.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -119,7 +195,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* App Info */}
+        {/* About */}
         <div>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
             About
