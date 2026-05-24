@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SignOutButton } from '@clerk/nextjs'
 import { HabitsInitializer } from '@/src/components/HabitsInitializer'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -16,13 +17,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <NavLink href="/today" label="Today" icon="✓" />
         <NavLink href="/reports" label="Reports" icon="📊" />
         <NavLink href="/settings" label="Settings" icon="⚙️" />
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-2">
           <Link
             href="/habit/create"
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#185FA5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0C447C] transition-colors"
           >
             + New Habit
           </Link>
+          <SignOutButton>
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            >
+              Sign out
+            </button>
+          </SignOutButton>
         </div>
       </nav>
 
