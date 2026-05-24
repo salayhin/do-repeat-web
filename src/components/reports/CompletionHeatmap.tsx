@@ -17,9 +17,9 @@ const DAY_LABELS: Record<number, string> = { 1: 'Mon', 3: 'Wed', 5: 'Fri' }
 
 function cellColor(status: string): string {
   switch (status) {
-    case 'completed': return '#216e39'
-    case 'skipped':   return '#F9A825'
-    case 'missed':    return '#f5c6c6'
+    case 'completed': return '#40c463'
+    case 'skipped':   return '#b6d96c'
+    case 'missed':    return '#ebedf0'
     default:          return '#ebedf0'
   }
 }
@@ -156,12 +156,19 @@ export default function CompletionHeatmap({ data }: CompletionHeatmapProps) {
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-1 mt-3 justify-end">
-        <span className="text-xs text-gray-400 mr-1">Less</span>
-        {['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'].map((c) => (
-          <div key={c} className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: c }} />
-        ))}
-        <span className="text-xs text-gray-400 ml-1">More</span>
+      <div className="flex items-center gap-3 mt-3 justify-end">
+        <div className="flex items-center gap-1">
+          <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: '#ebedf0' }} />
+          <span className="text-xs text-gray-400">No data</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: '#40c463' }} />
+          <span className="text-xs text-gray-400">Completed</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="rounded-sm" style={{ width: CELL, height: CELL, backgroundColor: '#b6d96c' }} />
+          <span className="text-xs text-gray-400">Skipped</span>
+        </div>
       </div>
     </div>
   )

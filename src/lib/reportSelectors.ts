@@ -39,6 +39,10 @@ export function getHeatmapData(
 ): HeatmapCell[] {
   const cells: HeatmapCell[] = []
   const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  const habitStartStr = habit.version_start_date
+    ? habit.version_start_date.slice(0, 10)
+    : todayStr
   const startDate = new Date(today)
   startDate.setDate(startDate.getDate() - weeks * 7)
 
@@ -49,12 +53,17 @@ export function getHeatmapData(
     const dayOfWeek = currentDate.getDay()
 
     const dateStr = currentDate.toISOString().split('T')[0]
+
+    // Future dates and dates before habit was created are always empty
+    const isFuture = dateStr > todayStr
+    const isBeforeHabit = dateStr < habitStartStr
+
     const isScheduled = streakLib.isScheduledForDate(habit, dateStr)
     const isCompleted = streakLib.isCompletedForDate(completions, dateStr)
     const isSkipped = streakLib.isSkippedForDate(skips, dateStr)
 
     let status: 'empty' | 'completed' | 'skipped' | 'missed' = 'empty'
-    if (!isScheduled) {
+    if (isFuture || isBeforeHabit || !isScheduled) {
       status = 'empty'
     } else if (isCompleted) {
       status = 'completed'
