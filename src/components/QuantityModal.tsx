@@ -61,7 +61,7 @@ export default function QuantityModal({
               className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
               style={{ backgroundColor: habit.color || '#185FA5' }}
             >
-              {habit.icon || '⭐'}
+              {habit.icon || null}
             </div>
             <div>
               <p className="font-semibold text-gray-900">{habit.name}</p>

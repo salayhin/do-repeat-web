@@ -110,7 +110,7 @@ export default function CheckInCard({
         className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl cursor-pointer hover:opacity-80 transition-opacity"
         style={{ backgroundColor: habit.color || '#185FA5' }}
       >
-        {habit.icon || '⭐'}
+        {habit.icon || null}
       </button>
 
       {/* Content */}
