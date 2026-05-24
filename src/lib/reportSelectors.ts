@@ -95,6 +95,57 @@ export function getHeatmapData(
 }
 
 /**
+ * Get calendar data for the current month (day-by-day)
+ */
+export function getMonthCalendarData(
+  habit: Habit,
+  completions: HabitCompletion[],
+  skips: HabitSkip[]
+): HeatmapCell[] {
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+  const habitStartStr = habit.version_start_date?.slice(0, 10) ?? todayStr
+
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const lastDay = new Date(year, month + 1, 0).getDate()
+  const cells: HeatmapCell[] = []
+
+  for (let d = 1; d <= lastDay; d++) {
+    const date = new Date(year, month, d)
+    const dateStr = date.toISOString().split('T')[0]
+    const dayOfWeek = date.getDay()
+
+    const isFuture = dateStr > todayStr
+    const isBeforeHabit = dateStr < habitStartStr
+    const isScheduled = streakLib.isScheduledForDate(habit, dateStr)
+    const isCompleted = streakLib.isCompletedForDate(completions, dateStr)
+    const isSkipped = streakLib.isSkippedForDate(skips, dateStr)
+
+    let status: HeatmapCell['status'] = 'empty'
+    if (isFuture || isBeforeHabit || !isScheduled) {
+      status = 'empty'
+    } else if (isCompleted) {
+      status = 'completed'
+    } else if (isSkipped) {
+      status = 'skipped'
+    } else {
+      status = habit.schedule_type === 'frequency' ? 'empty' : 'missed'
+    }
+
+    cells.push({
+      date: dateStr,
+      dayOfWeek,
+      week: 0,
+      status,
+      value: completions.find((c) => c.date === dateStr)?.value ?? undefined,
+    })
+  }
+
+  return cells
+}
+
+/**
  * Get streak history (current and best)
  */
 export function getStreakHistory(

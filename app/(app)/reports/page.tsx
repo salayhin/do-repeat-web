@@ -44,7 +44,7 @@ export default function ReportsPage() {
       const completions = await completionsRes.json()
       const skips = await skipsRes.json()
 
-      setHeatmapData(reportSelectors.getHeatmapData(selectedHabit, completions, skips))
+      setHeatmapData(reportSelectors.getMonthCalendarData(selectedHabit, completions, skips))
       setStreakData(reportSelectors.getStreakHistory(selectedHabit, completions, skips))
       setMonthlyRateData(reportSelectors.getMonthlyRates(selectedHabit, completions, skips))
       setTrendData(reportSelectors.getTrendData(selectedHabit, completions))
