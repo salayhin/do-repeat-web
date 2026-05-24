@@ -9,6 +9,12 @@ export function HabitsInitializer() {
   const { setTimezone, setSelectedDate } = useUIStore()
 
   useEffect(() => {
+    // Apply browser timezone immediately so first render shows the correct local date.
+    // The API call below will override with the user's saved timezone preference.
+    const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    setTimezone(browserTz)
+    setSelectedDate(getLocalDate(browserTz))
+
     initializeHabits()
     fetch('/api/settings')
       .then((r) => r.json())

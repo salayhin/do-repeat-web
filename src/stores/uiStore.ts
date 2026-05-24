@@ -18,8 +18,8 @@ interface UIStore {
 }
 
 export const useUIStore = create<UIStore>((set) => ({
-  selectedDate: new Date().toISOString().split('T')[0],
-  timezone: 'UTC',
+  selectedDate: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })(),
+  timezone: typeof window !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC',
   habitModalOpen: false,
   habitDetailsModalOpen: false,
   selectedHabitId: null,
