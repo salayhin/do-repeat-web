@@ -25,8 +25,9 @@ const TIMEZONES = [
 export default function SettingsPage() {
   const [isDark, setIsDark] = useState(false)
   const [timezone, setTimezone] = useState('UTC')
-  const [tzSaving, setTzSaving] = useState(false)
-  const [tzSaved, setTzSaved] = useState(false)
+  const [reminderTime, setReminderTime] = useState('08:00')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('theme')
@@ -34,9 +35,12 @@ export default function SettingsPage() {
       setIsDark(true)
       document.documentElement.classList.add('dark')
     }
-    fetch('/api/settings/timezone')
+    fetch('/api/settings')
       .then((r) => r.json())
-      .then((d) => { if (d.timezone) setTimezone(d.timezone) })
+      .then((d) => {
+        if (d.timezone) setTimezone(d.timezone)
+        if (d.reminderTime) setReminderTime(d.reminderTime)
+      })
       .catch(() => {})
   }, [])
 
@@ -52,22 +56,21 @@ export default function SettingsPage() {
     }
   }
 
-  const handleTimezoneChange = async (tz: string) => {
-    setTimezone(tz)
-    setTzSaving(true)
-    setTzSaved(false)
+  const saveSettings = async (patch: Record<string, string>) => {
+    setSaving(true)
+    setSaved(false)
     try {
-      await fetch('/api/settings/timezone', {
+      await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timezone: tz }),
+        body: JSON.stringify(patch),
       })
-      setTzSaved(true)
-      setTimeout(() => setTzSaved(false), 2000)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     } catch {
-      alert('Failed to save timezone')
+      alert('Failed to save settings')
     } finally {
-      setTzSaving(false)
+      setSaving(false)
     }
   }
 
@@ -108,33 +111,51 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Timezone */}
+        {/* Reminders */}
         <div>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
             Reminders
           </h2>
-          <div className="p-3 rounded-lg border border-[#E5E5E5]">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Timezone</p>
-                <p className="text-xs text-gray-500">Used for daily reminder emails</p>
-              </div>
-              {tzSaved && (
-                <span className="text-xs text-green-600 font-medium">Saved ✓</span>
-              )}
+          <div className="p-3 rounded-lg border border-[#E5E5E5] space-y-4">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-semibold text-gray-900">Daily reminder settings</p>
+              {saved && <span className="text-xs text-green-600 font-medium">Saved ✓</span>}
             </div>
-            <select
-              value={timezone}
-              onChange={(e) => handleTimezoneChange(e.target.value)}
-              disabled={tzSaving}
-              className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#185FA5] bg-white disabled:opacity-60"
-            >
-              {TIMEZONES.map((tz) => (
-                <option key={tz.value} value={tz.value}>
-                  {tz.label}
-                </option>
-              ))}
-            </select>
+
+            {/* Reminder time */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                Reminder time
+              </label>
+              <input
+                type="time"
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+                onBlur={() => saveSettings({ reminderTime })}
+                disabled={saving}
+                className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#185FA5] disabled:opacity-60"
+              />
+              <p className="text-xs text-gray-400 mt-1">Applies to all habits with reminders enabled</p>
+            </div>
+
+            {/* Timezone */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                Timezone
+              </label>
+              <select
+                value={timezone}
+                onChange={(e) => { setTimezone(e.target.value); saveSettings({ timezone: e.target.value }) }}
+                disabled={saving}
+                className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#185FA5] bg-white disabled:opacity-60"
+              >
+                {TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 

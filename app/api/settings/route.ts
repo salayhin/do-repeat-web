@@ -9,21 +9,25 @@ export async function GET() {
 
   const client = await clerkClient()
   const user = await client.users.getUser(userId)
-  const timezone = (user.publicMetadata?.timezone as string) || 'UTC'
-  return NextResponse.json({ timezone })
+  const meta = user.publicMetadata as Record<string, string>
+  return NextResponse.json({
+    timezone: meta?.timezone || 'UTC',
+    reminderTime: meta?.reminderTime || '08:00',
+  })
 }
 
 export async function PUT(request: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { timezone } = await request.json()
-  if (!timezone) return NextResponse.json({ error: 'Missing timezone' }, { status: 400 })
-
+  const body = await request.json()
   const client = await clerkClient()
+  const user = await client.users.getUser(userId)
+  const existing = (user.publicMetadata as Record<string, string>) || {}
+
   await client.users.updateUser(userId, {
-    publicMetadata: { timezone },
+    publicMetadata: { ...existing, ...body },
   })
 
-  return NextResponse.json({ timezone })
+  return NextResponse.json({ ok: true })
 }

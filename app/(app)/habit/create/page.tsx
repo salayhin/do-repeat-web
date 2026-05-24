@@ -253,15 +253,9 @@ export default function CreateHabitPage() {
             </div>
 
             {reminderEnabled && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Time</label>
-                <input
-                  type="time"
-                  value={reminderTime}
-                  onChange={(e) => setReminderTime(e.target.value)}
-                  className="w-full border border-[#E5E5E5] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#185FA5]"
-                />
-              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Reminder time is set globally in Settings → Reminders.
+              </p>
             )}
           </div>
         )}

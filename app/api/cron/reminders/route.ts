@@ -53,15 +53,16 @@ export async function GET(request: Request) {
         const email = user.emailAddresses[0]?.emailAddress
         if (!email) continue
 
-        const timezone = (user.publicMetadata?.timezone as string) || 'UTC'
+        const meta = user.publicMetadata as Record<string, string>
+        const timezone = meta?.timezone || 'UTC'
+        const reminderTime = meta?.reminderTime || '08:00'
         const localHour = localHourInTimezone(timezone)
+        const [reminderHH] = reminderTime.split(':')
 
-        // Only send to users whose reminder time matches the current local hour
-        const dueHabits = userHabits.filter((h) => {
-          if (!h.reminder_time) return false
-          const [hh] = h.reminder_time.split(':')
-          return parseInt(hh, 10) === localHour
-        })
+        // Only send when the user's local hour matches their global reminder time
+        if (parseInt(reminderHH, 10) !== localHour) continue
+
+        const dueHabits = userHabits
 
         if (dueHabits.length === 0) continue
 
