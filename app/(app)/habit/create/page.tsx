@@ -84,7 +84,7 @@ export default function CreateHabitPage() {
       })
       if (!res.ok) throw new Error('Failed to create')
       await refreshHabits()
-      router.push('/today')
+      router.push('/check-in')
     } catch (err) {
       alert('Failed to create habit')
     } finally {
@@ -101,7 +101,7 @@ export default function CreateHabitPage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5]">
-        <Link href="/today" className="text-sm font-semibold text-[#185FA5]">
+        <Link href="/check-in" className="text-sm font-semibold text-[#185FA5]">
           ← Cancel
         </Link>
         <h1 className="text-base font-bold text-gray-900">New Habit</h1>

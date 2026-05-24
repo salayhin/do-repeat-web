@@ -41,7 +41,7 @@ export default function EditHabitPage() {
   const loadHabit = async () => {
     try {
       const res = await fetch(`/api/habits/${id}`)
-      if (!res.ok) { router.push('/today'); return }
+      if (!res.ok) { router.push('/check-in'); return }
       const habit = await res.json()
 
       const days = Array.isArray(habit.schedule_days)
@@ -73,7 +73,7 @@ export default function EditHabitPage() {
         goal_unit: habit.goal_unit,
       })
     } catch (err) {
-      router.push('/today')
+      router.push('/check-in')
     } finally {
       setIsInitializing(false)
     }

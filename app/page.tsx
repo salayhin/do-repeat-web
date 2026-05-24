@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export default async function Home() {
   const { userId } = await auth()
-  if (userId) redirect('/today')
+  if (userId) redirect('/check-in')
 
   return (
     <div className="min-h-screen bg-white text-gray-900">

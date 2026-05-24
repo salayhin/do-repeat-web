@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Do Repeat (monochrome)">
+  <title>Do Repeat — monochrome</title>
+  <circle cx="128" cy="128" r="92" fill="none" stroke="currentColor" stroke-opacity="0.2" stroke-width="18"/>
+  <circle cx="128" cy="128" r="66" fill="none" stroke="currentColor" stroke-opacity="0.2" stroke-width="18"/>
+  <circle cx="128" cy="128" r="40" fill="none" stroke="currentColor" stroke-opacity="0.2" stroke-width="18"/>
+  <circle cx="128" cy="128" r="92" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"/>
+  <path d="M 128 62 A 66 66 0 1 1 62 128" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"/>
+  <path d="M 128 88 A 40 40 0 0 1 128 168" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"/>
+</svg>

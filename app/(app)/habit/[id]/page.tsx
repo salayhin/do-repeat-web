@@ -34,7 +34,7 @@ export default function HabitDetailPage() {
       ])
 
       if (!habitRes.ok) {
-        router.push('/today')
+        router.push('/check-in')
         return
       }
 
@@ -56,7 +56,7 @@ export default function HabitDetailPage() {
       setMonthHeatmap(reportSelectors.getMonthCalendarData(habitData, completions, skips))
     } catch (err) {
       console.error('Failed to load habit:', err)
-      router.push('/today')
+      router.push('/check-in')
     } finally {
       setIsLoading(false)
     }
@@ -67,7 +67,7 @@ export default function HabitDetailPage() {
     setIsArchiving(true)
     try {
       await archiveHabit(id)
-      router.push('/today')
+      router.push('/check-in')
     } catch (err) {
       alert('Failed to archive habit')
       setIsArchiving(false)
@@ -88,7 +88,7 @@ export default function HabitDetailPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="flex items-center px-4 py-3 border-b border-[#E5E5E5]">
-        <Link href="/today" className="text-sm font-semibold text-[#185FA5] mr-3">
+        <Link href="/check-in" className="text-sm font-semibold text-[#185FA5] mr-3">
           ← Back
         </Link>
         <h1 className="text-base font-bold text-gray-900 flex-1">{habit.name}</h1>

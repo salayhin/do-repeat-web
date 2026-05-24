@@ -13,7 +13,7 @@ export default async function SharePage({ params }: Props) {
   const habit = await getHabitByShareToken(token)
 
   if (!habit) {
-    redirect('/today')
+    redirect('/check-in')
   }
 
   // Fetch stats
