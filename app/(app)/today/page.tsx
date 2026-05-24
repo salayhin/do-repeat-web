@@ -1,0 +1,241 @@
+'use client'
+import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
+import { useHabitsStore } from '@/src/stores/habitsStore'
+import CheckInCard from '@/src/components/CheckInCard'
+import QuantityModal from '@/src/components/QuantityModal'
+import * as streakLib from '@/src/lib/streaks'
+
+interface HabitDayData {
+  habit: any
+  isCompleted: boolean
+  isSkipped: boolean
+  currentStreak: number
+  completionRate: number
+  completionValue: number
+  completions: any[]
+  skips: any[]
+}
+
+export default function TodayPage() {
+  const { habits } = useHabitsStore()
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [isLoading, setIsLoading] = useState(false)
+  const [habitData, setHabitData] = useState<HabitDayData[]>([])
+  const [quantityModalVisible, setQuantityModalVisible] = useState(false)
+  const [selectedHabitData, setSelectedHabitData] = useState<HabitDayData | null>(null)
+
+  const today = new Date().toISOString().split('T')[0]
+  const isToday = selectedDate === today
+  const displayDate = new Date(selectedDate + 'T00:00:00')
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      loadDayData()
+    }
+  }, [habits, selectedDate])
+
+  const loadDayData = async () => {
+    setIsLoading(true)
+    try {
+      const scheduledHabits = habits.filter((h) => streakLib.isScheduledForDate(h, selectedDate))
+
+      const data = await Promise.all(
+        scheduledHabits.map(async (habit) => {
+          const [completionsRes, skipsRes] = await Promise.all([
+            fetch(`/api/completions?habitId=${habit.id}`),
+            fetch(`/api/skips?habitId=${habit.id}`),
+          ])
+          const completions = await completionsRes.json()
+          const skips = await skipsRes.json()
+
+          const isCompleted = streakLib.isCompletedForDate(completions, selectedDate)
+          const isSkipped = streakLib.isSkippedForDate(skips, selectedDate)
+          const currentStreak = streakLib.computeCurrentStreak(habit, completions, skips)
+          const completionRate = streakLib.computeCompletionRate(habit, completions, skips, 30)
+          const todayCompletion = completions.find((c: any) => c.date === selectedDate)
+
+          return {
+            habit,
+            isCompleted,
+            isSkipped,
+            currentStreak,
+            completionRate,
+            completionValue: todayCompletion?.value || 0,
+            completions,
+            skips,
+          }
+        })
+      )
+
+      setHabitData(data)
+    } catch (err) {
+      console.error('Failed to load day data:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const completedCount = useMemo(
+    () => habitData.filter((d) => d.isCompleted || d.isSkipped).length,
+    [habitData]
+  )
+
+  const handlePreviousDay = () => {
+    const d = new Date(selectedDate + 'T00:00:00')
+    d.setDate(d.getDate() - 1)
+    setSelectedDate(d.toISOString().split('T')[0])
+  }
+
+  const handleNextDay = () => {
+    const d = new Date(selectedDate + 'T00:00:00')
+    d.setDate(d.getDate() + 1)
+    const next = d.toISOString().split('T')[0]
+    if (next <= today) setSelectedDate(next)
+  }
+
+  if (habits.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-8 text-center">
+        <div className="text-5xl mb-4">🌱</div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">No habits yet</h2>
+        <p className="text-gray-500 mb-6">Create your first habit to start tracking</p>
+        <Link
+          href="/habit/create"
+          className="px-5 py-3 bg-[#185FA5] text-white rounded-lg font-semibold hover:bg-[#0C447C] transition-colors"
+        >
+          + Create Habit
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5]">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isToday ? 'Today' : displayDate.toLocaleDateString('en-US', { weekday: 'long' })}
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {displayDate.toLocaleDateString('en-US', {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </p>
+        </div>
+        <Link
+          href="/habit/create"
+          className="w-10 h-10 rounded-full bg-[#185FA5] flex items-center justify-center text-white text-2xl font-bold hover:bg-[#0C447C] transition-colors"
+        >
+          +
+        </Link>
+      </div>
+
+      {/* Summary bar */}
+      {habitData.length > 0 && (
+        <div className="px-4 py-2.5 bg-gray-50 border-b border-[#E5E5E5]">
+          <p className="text-sm font-semibold text-gray-500">
+            {completedCount} of {habitData.length} completed
+          </p>
+          {habitData.length > 0 && (
+            <div className="h-1.5 bg-gray-200 rounded-full mt-1.5 overflow-hidden">
+              <div
+                className="h-full bg-[#4CAF50] rounded-full transition-all duration-500"
+                style={{ width: `${(completedCount / habitData.length) * 100}%` }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Date navigation */}
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-[#E5E5E5]">
+        <button
+          type="button"
+          onClick={handlePreviousDay}
+          className="flex-1 py-1.5 px-3 rounded-lg border border-[#E5E5E5] text-xs font-semibold text-[#185FA5] hover:bg-blue-50 transition-colors"
+        >
+          ← Prev
+        </button>
+        {!isToday && (
+          <button
+            type="button"
+            onClick={() => setSelectedDate(today)}
+            className="px-3 py-1.5 rounded-lg bg-[#185FA5] text-xs font-semibold text-white hover:bg-[#0C447C] transition-colors"
+          >
+            Today
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleNextDay}
+          disabled={isToday}
+          className="flex-1 py-1.5 px-3 rounded-lg border border-[#E5E5E5] text-xs font-semibold text-[#185FA5] hover:bg-blue-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Next →
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="px-3 py-3">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-8 h-8 border-2 border-[#185FA5] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : habitData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="text-4xl mb-3">😴</div>
+            <p className="text-gray-400 text-sm">No habits scheduled for this day</p>
+          </div>
+        ) : (
+          <div>
+            {habitData.map((item) => (
+              <div key={item.habit.id}>
+                <CheckInCard
+                  habit={item.habit}
+                  streak={item.currentStreak}
+                  completionRate={item.completionRate}
+                  isCompleted={item.isCompleted}
+                  isSkipped={item.isSkipped}
+                  date={selectedDate}
+                  completionValue={item.completionValue}
+                  onUpdate={loadDayData}
+                  onQuantityClick={
+                    item.habit.type !== 'binary'
+                      ? () => {
+                          setSelectedHabitData(item)
+                          setQuantityModalVisible(true)
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Quantity Modal */}
+      {selectedHabitData && (
+        <QuantityModal
+          visible={quantityModalVisible}
+          habit={selectedHabitData.habit}
+          currentValue={selectedHabitData.completionValue}
+          date={selectedDate}
+          onClose={() => {
+            setQuantityModalVisible(false)
+            setSelectedHabitData(null)
+          }}
+          onSave={() => {
+            setQuantityModalVisible(false)
+            setSelectedHabitData(null)
+            loadDayData()
+          }}
+        />
+      )}
+    </div>
+  )
+}
