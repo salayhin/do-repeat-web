@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# drizzle
+/src/db/migrations/*.sql
+/src/db/migrations/meta
+
+# editor
+.idea/
+.vscode/
+*.swp
+*.swo
