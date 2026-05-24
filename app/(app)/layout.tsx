@@ -1,5 +1,7 @@
+'use client'
 import Link from 'next/link'
-import { SignOutButton } from '@clerk/nextjs'
+import { SignOutButton, useUser } from '@clerk/nextjs'
+import { useState } from 'react'
 import { HabitsInitializer } from '@/src/components/HabitsInitializer'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -18,21 +20,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <NavLink href="/habits" label="My Habits" icon="📋" />
         <NavLink href="/reports" label="Reports" icon="📊" />
         <NavLink href="/settings" label="Settings" icon="⚙️" />
-        <div className="mt-auto flex flex-col gap-2">
-          <Link
-            href="/habit/create"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#185FA5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0C447C] transition-colors"
-          >
-            + New Habit
-          </Link>
-          <SignOutButton>
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-            >
-              Sign out
-            </button>
-          </SignOutButton>
+        <div className="mt-auto">
+          <UserMenu />
         </div>
       </nav>
 
@@ -68,5 +57,62 @@ function MobileTab({ href, label, icon }: { href: string; label: string; icon: s
       <span className="text-lg">{icon}</span>
       <span className="text-xs font-medium">{label}</span>
     </Link>
+  )
+}
+
+function UserMenu() {
+  const { user } = useUser()
+  const [open, setOpen] = useState(false)
+
+  const name = user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || 'Account'
+  const email = user?.emailAddresses[0]?.emailAddress || ''
+  const initials = name.slice(0, 2).toUpperCase()
+  const avatarUrl = user?.imageUrl
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2.5 w-full px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-[#185FA5] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            {initials}
+          </div>
+        )}
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+          <p className="text-xs text-gray-400 truncate">{email}</p>
+        </div>
+        <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute bottom-full left-0 right-0 mb-1 z-20 bg-white border border-[#E5E5E5] rounded-xl shadow-lg py-1 overflow-hidden">
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <span>⚙️</span> Settings
+            </Link>
+            <div className="border-t border-[#E5E5E5] my-1" />
+            <SignOutButton>
+              <button
+                type="button"
+                className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <span>→</span> Sign out
+              </button>
+            </SignOutButton>
+          </div>
+        </>
+      )}
+    </div>
   )
 }
